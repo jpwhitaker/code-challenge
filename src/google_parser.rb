@@ -19,12 +19,15 @@ class GoogleParser
       # debugger
       {
         name: name,
-        extensions: [extension],
+        extensions: extension,
         link: link,
         image: image,
       }
     end
-    puts JSON.pretty_generate({"artworks": artworks_array})
+    
+    output = {"artworks": artworks_array}
+    File.write("my-array.json", JSON.pretty_generate(output))
+    puts "Output written to my-array.json"
   end
 
   def get_gallery_items
@@ -39,25 +42,29 @@ class GoogleParser
     if id
       content = @doc.to_s
       sections = content.split("data:image/jpeg;base64,")
-      
-      # Look through each section for one that contains our ID
+      matching_sections = []
       sections[1..-1].each do |section|
         if section.include?(id)
-          # Grab everything up to the first "';
           end_pos = section.index("';")
           if end_pos
             base64_part = section[0...end_pos]
-            return "data:image/jpeg;base64,#{base64_part}"
+            # debugger
+            base64_part = "\"#{base64_part}\"".undump
+            matching_sections << base64_part
           end
         end
       end
-
+      
+      if matching_sections.any?
+        longest_base64 = matching_sections.max_by(&:length)
+        return "data:image/jpeg;base64,#{longest_base64}"
+      end
+  
     else
       return item.css('img.taFZJe').first['data-src']
     end
-
+  
     nil
-    
   end
 
   def extract_name(item)
@@ -65,7 +72,8 @@ class GoogleParser
   end
 
   def extract_extension(item)
-    item.css("div.cxzHyb").first.text.strip
+    extension = item.css("div.cxzHyb").first.text.strip
+    extension.empty? ? nil : [extension]
   end
 
   def extract_link(item)
@@ -80,6 +88,4 @@ end
 
 
 parser = GoogleParser.new
-# parser.extract_images
-# parser.get_gallery_items
 parser.parse
