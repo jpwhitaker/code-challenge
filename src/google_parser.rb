@@ -83,7 +83,6 @@ class GoogleParser
   private
 
   def generate_output_filename
-    # Extract just the filename without path and extension
     base_name = File.basename(@input_file, File.extname(@input_file))
     "files/#{base_name}-array.json"
   end

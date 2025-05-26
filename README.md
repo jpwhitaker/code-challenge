@@ -1,4 +1,4 @@
-# JP's Google Parser
+# JP Whitaker's Google Parser
 
 ## Usage
 
