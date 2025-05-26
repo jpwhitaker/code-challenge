@@ -1,4 +1,4 @@
-# Extract Van Gogh Paintings Code Challenge
+# JP's Google Parser
 
 ## Usage
 
@@ -44,6 +44,7 @@ The tests validate:
 - Exact match against expected output (**van Gogh only**)
 
 ---
+# Extract Van Gogh Paintings Code Challenge
 
 Goal is to extract a list of Van Gogh paintings from the attached Google search results page.
 
