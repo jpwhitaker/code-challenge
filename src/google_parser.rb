@@ -1,10 +1,9 @@
 require 'nokogiri'
 require 'json'
-require 'debug'
-
 
 class GoogleParser
   def initialize(url = "files/van-gogh-paintings.html")
+    @input_file = url
     content = File.read(url)
     @doc = Nokogiri::HTML(content)
   end
@@ -16,26 +15,24 @@ class GoogleParser
       image = extract_image(item)
       extension = extract_extension(item)
       link = extract_link(item)
-      # debugger
-      {
-        name: name,
-        extensions: extension,
-        link: link,
-        image: image,
-      }
+      
+      artwork = {}
+      artwork[:name] = name
+      artwork[:extensions] = extension if extension
+      artwork[:link] = link
+      artwork[:image] = image
+      artwork
     end
     
     output = {"artworks": artworks_array}
-    File.write("my-array.json", JSON.pretty_generate(output))
-    puts "Output written to my-array.json"
+    output_filename = generate_output_filename
+    File.write(output_filename, JSON.pretty_generate(output))
+    puts "Output written to #{output_filename}"
   end
 
   def get_gallery_items
-    galleryItems = @doc.css('div.iELo6')
-    galleryItems.first.css('img.taFZJe').first
-    return galleryItems
+    gallery_items = @doc.css('div.iELo6')
   end
-
 
   def extract_image(item)
     id = item.css('img.taFZJe').first['id']
@@ -48,7 +45,6 @@ class GoogleParser
           end_pos = section.index("';")
           if end_pos
             base64_part = section[0...end_pos]
-            # debugger
             base64_part = "\"#{base64_part}\"".undump
             matching_sections << base64_part
           end
@@ -79,13 +75,16 @@ class GoogleParser
   def extract_link(item)
     begin
       anchor = item.css("a").first
-      link = anchor.attribute_nodes.first.value
+      link = anchor['href']
       return "https://www.google.com#{link}"
     end
   end
 
+  private
+
+  def generate_output_filename
+    # Extract just the filename without path and extension
+    base_name = File.basename(@input_file, File.extname(@input_file))
+    "files/#{base_name}-array.json"
+  end
 end
-
-
-parser = GoogleParser.new
-parser.parse
